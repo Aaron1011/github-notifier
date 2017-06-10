@@ -1,0 +1,7 @@
+[package]
+name = "github-notifier"
+version = "0.1.0"
+authors = ["Aaron Hill <aa1ronham@gmail.com>"]
+
+[dependencies]
+reqwest = "0.6"
