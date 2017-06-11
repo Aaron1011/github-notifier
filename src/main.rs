@@ -2,7 +2,7 @@ extern crate reqwest;
 extern crate hyper;
 #[macro_use] extern crate serde_derive;
 extern crate serde_json;
-//extern crate notify_rust;
+extern crate notify_rust;
 
 mod client;
 mod types;
@@ -14,10 +14,9 @@ use reqwest::Method;
 use std::io::Read;
 use std::collections::HashMap;
 
-//use notify_rust::Notification;
+use notify_rust::Notification as OSD;
 
 fn main() {
-
     let client = GHClient::new(get_token());
     let resp = client.request(Method::Get, "https://api.github.com/notifications?all=true")
         .send();
@@ -28,13 +27,21 @@ fn main() {
     let notes: Vec<Notification> = serde_json::from_str(&data).unwrap();
     let map = group_by_repos(notes.into_iter());
 
+    let mut msg = String::with_capacity(100);
+
     for repo in map.keys() {
-        println!("Repo: {}", repo.full_name);
+        msg += &format!("Repo: {}\n", repo.full_name);
         for note in map.get(repo).unwrap() {
-            println!("\t{}", note.body.title);
+            msg += &format!("\t{} {}\n", note.body.title, note.body.url);
         }
     }
 
+    OSD::new()
+    .summary("Github Notification")
+    .body(&msg)
+    .show().unwrap();
+
+    
 }
 
 type Map = HashMap<Repository, Vec<Notification>>;
